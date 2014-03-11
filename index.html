@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+
+</head>
+<body>
+<div id="data"></div>
+
+<script>
+
+    var apiMethod = 'countryInfoJSON';
+    var parameters = 'username=yourUsername';
+    var result = '';
+    var countries = {};
+    $.get('http://api.geonames.org/' +
+            apiMethod + '?' + parameters, function (data) {
+
+        console.log(data["geonames"]);
+        $.each(data['geonames'], function (i, item) {
+            countries[item.countryCode] = {id: item.geonameId};
+            countries[item.countryCode].neighbours = [];
+        });
+        var count = 1;
+        var allowed = 3;
+        var accessed = 0;
+        var countryLen = Object.keys(countries).length;
+        $.each(countries, function (i, item) {
+            console.log(i);
+            // if(accessed++<allowed){
+            $.get('http://api.geonames.org/neighboursJSON?geonameId=' + item["id"] + '&' + parameters, function (data) {
+                if (data["geonames"]) {
+                    $.each(data["geonames"], function (j, it) {
+                        if (it.fcl == "A") {
+                            countries[i].neighbours.push(it.countryCode);
+                        }
+
+                    });
+                }
+                console.log(count);
+                if (count++ == countryLen) {
+                    printResults();
+                }
+            });
+            // }
+        });
+        printResults = function () {
+            result = JSON.stringify(countries);
+            $('#data').html(result);
+            console.log(countries);
+        }
+
+
+    });
+
+</script>
+</body>
+</html>
